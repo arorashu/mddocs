@@ -16,3 +16,4 @@ Link to [other page](otherPage.md)
 ```
 $ go run mddocs.go
 ```
+3. Your docs will be available at `localhost:8080`
