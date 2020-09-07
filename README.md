@@ -7,8 +7,6 @@ Write your notes / docs / whatever in Markdown. Easy formatting. Link pages. Vie
 2. Link to other pages in the directory.
 3. Self contrained documentation, not a global note-taking app. Focus on what you are working on.
 
-Link to [other page](otherPage.md)
-
 
 ## How to run
 1. Install go 1.15 +
