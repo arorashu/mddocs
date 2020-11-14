@@ -30,7 +30,7 @@ func readMdFile(fileName string) string {
 	parsedOutput := markdown.ToHTML(data, nil, nil)
 	resp := getAllPagesTemplate()
 	resp += string(parsedOutput)
-	return string(resp)
+	return resp
 }
 
 // list the Files with '.md' extension in current directory
@@ -51,8 +51,11 @@ func listFilesInDirectory(files []os.FileInfo) string {
 	return str.String()
 }
 
-func main() {
-	fmt.Printf("Markdown docs\n")
+// start a server on localhost:8080, and listen for incoming connections
+// TODO: make port variable?
+// using https://stackoverflow.com/questions/43424787/how-to-use-next-available-port-in-http-listenandserve
+func startServer() {
+	fmt.Printf("Markdown docs serving at port 8080 \n")
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 		fileName := r.URL.Path
@@ -86,4 +89,50 @@ func main() {
 		}
 	})
 	log.Fatal(http.ListenAndServe(":8080", nil))
+}
+
+// check if config exists
+// create new config if doesn't exist
+// returns the config file
+func loadConfig() {
+
+}
+
+func addToNotes() {
+	loadConfig()
+
+}
+
+func removeFromNotes() {
+}
+
+func listNotes() {
+}
+
+func saveConfig() {
+
+}
+
+func showHelpUsage() {
+	fmt.Printf("Not a valid option. Use either start, add, remove, list or no option\n")
+}
+
+func main() {
+
+	if len(os.Args) == 1 {
+		startServer()
+	} else {
+		switch os.Args[1] {
+		case "start":
+			startServer()
+		case "add":
+			addToNotes()
+		case "remove":
+			removeFromNotes()
+		case "list":
+			listNotes()
+		default:
+			showHelpUsage()
+		}
+	}
 }

@@ -1,0 +1,25 @@
+{
+  "name": "mddocs-ui",
+  "version": "0.0.1",
+  "description": "simple ui to see md docs in a directory",
+  "main": "index.js",
+  "dependencies": {
+    "react": "^17.0.1",
+    "react-dom": "^17.0.1"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.12.3",
+    "@babel/preset-env": "^7.12.1",
+    "@babel/preset-react": "^7.12.1",
+    "parcel-bundler": "^1.12.4"
+  },
+  "resolutions": {
+    "node-forge": "0.10.0"
+  },
+  "scripts": {
+    "start": "parcel index.html",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Shubham Arora",
+  "license": "ISC"
+}
