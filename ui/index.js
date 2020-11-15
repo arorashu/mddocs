@@ -8,37 +8,58 @@ class App extends React.Component {
             serverURL: "http://localhost:8080/",
             viewData: ""
         };
-        this.registerAllClicks();
     }
 
-    registerAllClicks = () => {
-        window.onclick = function (e) {
-            if(e.target.localName == "a") {
-                console.log('a tag clicked!');
-                // e.stopPropagation();
-                e.preventDefaul();
+    /**
+     * 
+     * @param {String} path 
+     */
+    onMainViewClick = (path) => {
+        if (path.startsWith("http")) { // is not a relative link
+            window.open(path, '_blank');
+        } else {
+            const fileExtension = path.split('.').pop();
+            if (!fileExtension || fileExtension.length === 0) {
+                console.log(`not a valid file path right now. path: ${path}`);
+            }
+            if (fileExtension === 'md') {
+                this.loadPage(path);
+            } else if (fileExtension === 'pdf') {
+                this.loadLocalPdf(path);
             }
         }
     }
 
-    handlePageClick = (e) => {
-        console.log("called with params: ", e.target.innerText);
-        const pageName = e.target.innerText.trim();
+    /**
+     * open pdf in new tab
+     * @param {String} pathName 
+     */
+    loadLocalPdf = (pathName) => {
+        console.log(`load pdf: ${pathName} `);
+        const pagePath = this.state.serverURL + pathName;
+        window.open(pagePath, '_blank');
+    }
+
+    /**
+     * 
+     * @param {String} pageName the page to load
+     */
+    loadPage = (pageName) => {
         const pagePath = this.state.serverURL + pageName;
+        // TODO: sanitize viewData here
+        // i.e. resolve all relative links
         fetch(pagePath)
             .then(resp => resp.text())
             .then(data => {
-                this.setState({viewData: data});
-                // document.getElementById('main').innerHTML = data;
+                this.setState({ viewData: data });
             });
-
     }
 
     render() {
         return (
             <React.Fragment>
-                <Sidebar onPageClick={this.handlePageClick}></Sidebar>
-                <MainView pageData={this.state.viewData}> </MainView>
+                <Sidebar onPageClick={this.loadPage} serverURL={this.state.serverURL}></Sidebar>
+                <MainView pageData={this.state.viewData} onPageClick={this.onMainViewClick}> </MainView>
             </React.Fragment>
 
         )
@@ -46,10 +67,33 @@ class App extends React.Component {
 }
 
 function MainView(props) {
+
+    /**
+     * 
+     * @param {Event} e 
+     */
+    function onViewClick(e) {
+        // if click an anchor tag
+        if (e.target.localName == 'a') {
+            e.preventDefault();
+            const targetLink = String(e.target.getAttribute('href'));
+            props.onPageClick(targetLink);
+        }
+    }
+
+    // TODO: handle assets loading for other tags apart from img as well
+    let mainDiv = document.createElement('div');
+    mainDiv.innerHTML = props.pageData;
+    mainDiv.querySelectorAll('img').forEach((img) => {
+        img.setAttribute('src', `http://localhost:8080/${img.getAttribute('src')}`);
+    });
+    mainDiv.querySelectorAll('link').forEach((link) => {
+        link.removeAttribute('href');
+    });
     const innerHTML = {
-        __html: props.pageData
+        __html: mainDiv.innerHTML
     };
-    return (<div dangerouslySetInnerHTML={innerHTML}/>);
+    return (<div onClick={onViewClick} dangerouslySetInnerHTML={innerHTML} />);
 }
 
 class Sidebar extends React.Component {
@@ -59,22 +103,17 @@ class Sidebar extends React.Component {
         this.state = {
             pageList: []
         }
+        this.handleItemClick = this.handleItemClick.bind(this);
     }
 
     componentDidMount() {
-        console.log("init bar called");
-        let serverURL = "http://localhost:8080/";
-        let listAllPath = serverURL + "list-all";
+        let listAllPath = this.props.serverURL + "list-all";
         fetch(listAllPath)
             .then(resp => {
                 if (!resp.ok) {
-                    let p = document.createElement('p');
-                    p.innerText('Opps, Server not found!');
-                    this.display.appendChild(p);
                     console.log('server unavailable');
                     return;
                 }
-                console.log("response ok");
                 return resp.text();
             })
             .then(data => {
@@ -96,23 +135,30 @@ class Sidebar extends React.Component {
         return pageList;
     }
 
+    /**
+     * receives a click event, calls the props.OnPageClick function
+     * with the pageName as parameters
+     * @param {Event} e the click event on page listing
+     */
+    handleItemClick = (e) => {
+        try {
+            const pageName = e.target.innerText.trim();
+            this.props.onPageClick(pageName);
+        } catch (error) {
+            console.log('Not a valid link click.');
+        }
+    }
+
     render() {
 
         let pageListElement = document.createElement('ul');
         pageListElement.style.listStyleType = 'none';
-        let pageList = [];
-        // console.log("page list: ",  this.state.pageList);
         let pageLi = this.state.pageList.map(page =>
-            <li key={page}><a href="#" onClick={this.props.onPageClick}>{page}</a></li>
+            <li key={page}><a href="#" onClick={this.handleItemClick}>{page}</a></li>
         );
-        console.log("page li: ", pageLi);
-
         return <ul> {pageLi} </ul>;
     }
 }
-
-// let sidebarNode = document.getElementById('sidebar');
-// ReactDOM.render(<Sidebar/>, sidebarNode);
 
 
 let appNode = document.getElementById('app');
